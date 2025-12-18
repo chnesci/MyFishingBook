@@ -1,0 +1,158 @@
+AUDITORÍA COMPLETA - FishLog
+Fecha: 2025-11-24
+Autor: Copilot (resumen automático)
+
+Propósito
+--------
+Este archivo reúne la auditoría completa del proyecto FishLog en el estado actual del workspace. Contiene:
+- Inventario resumido y rutas clave.
+- Hallazgos (seguridad, bugs, inconsistencias, dependencias).
+- Prioridad de acciones y plan de trabajo.
+- Comandos y notas para futuras auditorías (para que el asistente no tenga que repetir todo).
+
+INVENTARIO (archivos/carpetas clave revisados)
+--------------------------------------------
+Raíz del repo: c:\Users\Cristian\fishlog
+Carpetas/archivos principales revisados (no exhaustiva línea por línea):
+- pubspec.yaml
+- pubspec.lock
+- README.md, READMEUSUARIOFINAL.md
+- lib/
+  - main.dart
+  - splash_screen.dart
+  - models/
+    - fishing_log.dart
+    - fishing_log.g.dart
+    - user.dart
+    - user.g.dart
+  - screens/
+    - login_screen.dart
+    - register_screen.dart
+    - forgot_password_screen.dart
+    - main_screen.dart
+    - new_log_screen.dart
+    - edit_log_screen.dart
+    - fishing_log_list_screen.dart
+    - log_detail_screen.dart
+    - profile_screen.dart
+    - statistics_screen.dart
+  - utils/
+    - database_service.dart
+    - theme_provider.dart
+- assets/ (icon, logo)
+- android/, ios/, web/, windows/, macos/, linux/ (configs de plataforma)
+- test/widget_test.dart
+- otras carpetas: build/ (artefactos), .dart_tool/ (artefactos), etc.
+
+Nota: Se listaron y leyeron en detalle los archivos Dart dentro de `lib/` indicados arriba; además se inspeccionaron `pubspec.yaml` y archivos web básicos.
+
+HALLAZGOS (ordenados por prioridad)
+----------------------------------
+CRÍTICOS (deben corregirse antes de publicar o sincronizar datos):
+1) Contraseñas almacenadas en texto plano
+   - Archivos: `lib/models/user.dart`, `lib/screens/register_screen.dart`, `lib/screens/login_screen.dart`, `lib/screens/forgot_password_screen.dart`.
+   - Riesgo: exposición de credenciales si el dispositivo es comprometido o si se sincroniza/respalda la caja Hive.
+   - Recomendación: migrar a `passwordHash` usando un algoritmo seguro (bcrypt/argon2) o usar `flutter_secure_storage` para claves; implementar migración de datos para usuarios existentes.
+
+2) API key directamente en código (OpenWeather)
+   - Archivos: `lib/screens/new_log_screen.dart`, `lib/screens/edit_log_screen.dart`.
+   - Riesgo: key pública en repo, uso no controlado.
+   - Recomendación: usar `flutter_dotenv` o pasar la key vía `--dart-define` y remover del código fuente.
+
+ALTOS (correcciones necesarias pronto)
+3) Uso de `date` sin comprobaciones (posible null)
+   - Archivo: `lib/screens/fishing_log_list_screen.dart` (usa `log.date.toString().substring(0, 16)` sin null check).
+   - Recomendación: comprobar `log.date != null` antes de formatear o usar un fallback.
+
+4) Inconsistencias entre `weather` y `conditions` (campos duplicados)
+   - Archivo: `lib/models/fishing_log.dart` y pantallas `new_log_screen.dart` / `edit_log_screen.dart`.
+   - Recomendación: normalizar esquema (ej. usar `conditions` y `temperature` únicamente) y actualizar guardado/lectura para no duplicar.
+
+5) Imágenes: solo se guardan rutas originales
+   - Archivos: `new_log_screen.dart`, `edit_log_screen.dart`, `fishing_log_list_screen.dart`.
+   - Riesgo: si usuario borra la foto o si la ruta es temporal, la imagen se perderá; además impacto en rendimiento (sin thumbnails).
+   - Recomendación: copiar imágenes al directorio de la app (`getApplicationDocumentsDirectory()/images/`) y generar miniaturas; usar rutas internas.
+
+MEDIOS (mejoras de arquitectura y mantenimiento)
+6) Código duplicado (location, image pick, weather) entre `new_log_screen` y `edit_log_screen`
+   - Recomendación: extraer a `services/location_service.dart`, `services/image_service.dart`, `services/weather_service.dart`.
+
+7) Boxes de Hive abiertas en múltiples lugares
+   - Observación: `main.dart` ya abre boxes; otros archivos a veces usan `await Hive.openBox` repetidamente.
+   - Recomendación: abrir boxes al inicio y usar `Hive.box<T>` luego; centralizar acceso en `database_service` o similar.
+
+8) `database_service.dart` (sqflite) es un placeholder
+   - Recomendación: eliminar o documentar intención (si planeas migrar a SQL o usar backup local).
+
+9) Falta de tests y CI
+   - Recomendación: añadir tests unitarios para modelos y flujos críticos (login/register) y configurar GitHub Actions para `flutter analyze` y `flutter test`.
+
+UI / UX y menores
+10) Mensajes de error y validaciones: hay validaciones en registro, pero se pueden añadir confirmaciones y controles en formularios de registro de captura.
+11) Localización: `flutter_localizations` está en `pubspec.yaml` pero no hay `.arb` ni internacionalización formal.
+
+DEPENDENCIAS
+-------------
+`pubspec.yaml` muestra las dependencias actuales; al ejecutar `flutter pub outdated` se detectaron varias versiones más nuevas disponibles. Actualizar depende de pruebas; hacerlo incrementalmente.
+
+PRIORIDAD DE ACCIONES (resumen, breve)
+--------------------------------------
+1) Seguridad: password hashing / secure storage (Crítico)
+2) Secrets: mover API keys fuera del código (Crítico)
+3) Arreglar null checks y bugs de crash (Alto)
+4) Persistencia de imágenes + thumbnails (Alto/Medio)
+5) Refactor servicios compartidos (Medio)
+6) Tests y CI (Medio)
+7) Sync/backup y publicación (Baja, cuando MVP sea estable)
+
+CAMBIOS SEGUROS Y RÁPIDOS (patches recomendados ahora)
+-----------------------------------------------------
+- Añadir null checks donde se accede a `date` en lista/detalle.
+- Extraer la API key de OpenWeather y documentar uso de `.env` (sin subir la key).
+- Agregar una nota en `readmecopilot` explicando la necesidad del hashing.
+
+COMANDOS ÚTILES (para reproducir auditoría / chequeos)
+------------------------------------------------------
+- Análisis estático y linter:
+```pwsh
+flutter analyze
+```
+- Revisar dependencias desactualizadas:
+```pwsh
+flutter pub outdated
+```
+- Ejecutar tests (si existen):
+```pwsh
+flutter test
+```
+- Generar build apk (ya usado):
+```pwsh
+flutter build apk --release
+```
+
+NOTAS PARA FUTURAS AUDITORÍAS (qué contiene este `readmecopilot`)
+----------------------------------------------------------------
+- Este archivo debe actualizarse cada vez que se cambien estructuras críticas (modelos Hive, esquema de datos, manejo de images, migraciones).
+- Incluir un bloque "última auditoría" con hash de commit si usas git.
+- Guardar aquí la lista completa de archivos con checksum si quieres detectar cambios automáticos.
+
+ARCHIVOS PARA REVISAR MANUALMENTE (por si quieres que compruebe alguno línea a línea)
+------------------------------------------------------------------------------------
+- Cualquier archivo en `android/` o `ios/` relacionado con permisos (ubicación, cámara) — para asegurar manifest y permission handling correcto.
+- `lib/models` y `lib/screens` ya inspeccionados.
+- Assets grandes (imágenes) que quieras optimizar.
+
+PRÓXIMOS PASOS (si me autorizas a implementar parches)
+-----------------------------------------------------
+Si me das OK puedo, en orden:
+1) Implementar patch para no crash (null date checks) — pequeño y seguro.
+2) Extraer API key a `.env` (añadir `flutter_dotenv`) y documentar cómo establecer la variable en tu entorno local (no subir la key).
+3) Implementar hashing de contraseñas (migración planificada) o aplicar `flutter_secure_storage` para credenciales.
+
+ENTREGA (archivo creado)
+------------------------
+He creado este `readmecopilot` en la raíz del proyecto con todo lo anterior. Puedes editarlo manualmente si quieres añadir detalles o subir la key temporalmente (no recomendado).
+
+FIN DEL INFORME
+---------------
+Cuando quieras, procedo con los parches que autorices (A) null-checks, (B) extraer API key, (C) hashing de contraseñas. Indica la letra o "pausa" para no hacer cambios.
