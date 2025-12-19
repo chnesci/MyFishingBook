@@ -210,7 +210,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       if (!mounted) return;
       setState(() {
