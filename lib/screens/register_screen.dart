@@ -52,12 +52,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       await userBox.put(username, newUser);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registro exitoso. ¡Inicia sesión!')),
-        );
-        Navigator.of(context).pushReplacementNamed('/login');
-      }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registro exitoso. ¡Inicia sesión!'),
+            ),
+          );
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
     }
   }
 

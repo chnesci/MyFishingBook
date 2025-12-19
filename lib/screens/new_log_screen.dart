@@ -46,13 +46,15 @@ class _NewLogScreenState extends State<NewLogScreen> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Los servicios de ubicación están deshabilitados. Por favor, habilítalos.',
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Los servicios de ubicación están deshabilitados. Por favor, habilítalos.',
+            ),
           ),
-        ),
-      );
+        );
+      }
       return false;
     }
 
@@ -60,22 +62,26 @@ class _NewLogScreenState extends State<NewLogScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Se denegaron los permisos de ubicación.'),
-          ),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Se denegaron los permisos de ubicación.'),
+            ),
+          );
+        }
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Los permisos de ubicación se han denegado permanentemente. No se puede solicitar la ubicación.',
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Los permisos de ubicación se han denegado permanentemente. No se puede solicitar la ubicación.',
+            ),
           ),
-        ),
-      );
+        );
+      }
       return false;
     }
     return true;
@@ -137,9 +143,11 @@ class _NewLogScreenState extends State<NewLogScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al obtener la dirección: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al obtener la dirección: $e')),
+        );
+      }
     }
   }
 
@@ -161,13 +169,17 @@ class _NewLogScreenState extends State<NewLogScreen> {
       await _getAddressFromLatLng(position);
       await _fetchWeather(position);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ubicación y clima obtenidos con éxito.')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ubicación y clima obtenidos con éxito.')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al obtener la ubicación o el clima: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al obtener la ubicación o el clima: $e')),
+        );
+      }
     } finally {
       setState(() {
         _isLoadingLocation = false;
