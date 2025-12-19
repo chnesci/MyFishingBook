@@ -375,20 +375,15 @@ class _EditLogScreenState extends State<EditLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !_hasChanged,
-      onPopInvoked: (didPop) async {
-        if (didPop) {
-          return;
+    return WillPopScope(
+      onWillPop: () async {
+        if (!_hasChanged) return true;
+        final shouldSave = await _showUnsavedChangesDialog();
+        if (shouldSave == true) {
+          _saveLog();
+          return false;
         }
-        if (_hasChanged) {
-          final shouldSave = await _showUnsavedChangesDialog();
-          if (shouldSave == true) {
-            _saveLog();
-          } else {
-            Navigator.pop(context);
-          }
-        }
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('Editar Registro de Pesca')),

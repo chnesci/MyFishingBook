@@ -44,8 +44,9 @@ class _NewLogScreenState extends State<NewLogScreen> {
     bool serviceEnabled;
     LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!mounted) return false;
+  if (!serviceEnabled) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -59,8 +60,10 @@ class _NewLogScreenState extends State<NewLogScreen> {
     }
 
     permission = await Geolocator.checkPermission();
+    if (!mounted) return false;
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+      if (!mounted) return false;
       if (permission == LocationPermission.denied) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

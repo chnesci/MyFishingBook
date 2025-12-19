@@ -5,7 +5,7 @@ import 'dart:io';
 
 class LogDetailScreen extends StatelessWidget {
   final FishingLog fishingLog;
-  const LogDetailScreen({Key? key, required this.fishingLog}) : super(key: key);
+  const LogDetailScreen({super.key, required this.fishingLog});
 
   void _launchMapsUrl() async {
     final lat = fishingLog.latitude;
