@@ -78,6 +78,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
     LocationPermission permission;
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!mounted) return false;
     if (!serviceEnabled) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -92,8 +93,10 @@ class _EditLogScreenState extends State<EditLogScreen> {
     }
 
     permission = await Geolocator.checkPermission();
+    if (!mounted) return false;
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+      if (!mounted) return false;
       if (permission == LocationPermission.denied) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -141,7 +144,8 @@ class _EditLogScreenState extends State<EditLogScreen> {
         'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric&lang=es',
       );
 
-      final response = await http.get(url);
+  final response = await http.get(url);
+  if (!mounted) return;
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -178,6 +182,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
         position.latitude,
         position.longitude,
       );
+      if (!mounted) return;
 
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
@@ -198,6 +203,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
   void _getCurrentLocation() async {
     if (!await _handleLocationPermission()) return;
 
+          if (!mounted) return;
     setState(() {
       _isLoadingLocation = true;
     });
@@ -206,14 +212,16 @@ class _EditLogScreenState extends State<EditLogScreen> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
+      if (!mounted) return;
       setState(() {
         _currentPosition = position;
         _hasChanged = true;
       });
       
       await _getAddressFromLatLng(position);
+      if (!mounted) return;
       await _fetchWeather(position);
-
+      if (!mounted) return;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ubicación y clima actualizados.')),

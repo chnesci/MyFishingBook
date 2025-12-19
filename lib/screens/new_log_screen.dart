@@ -98,9 +98,10 @@ class _NewLogScreenState extends State<NewLogScreen> {
         'https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric&lang=es',
       );
 
-      final response = await http.get(url);
+  final response = await http.get(url);
+  if (!mounted) return;
 
-      if (response.statusCode == 200) {
+  if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final temp = data['main']['temp'].toStringAsFixed(1);
         final description = data['weather'][0]['description'];
@@ -134,6 +135,8 @@ class _NewLogScreenState extends State<NewLogScreen> {
         position.latitude,
         position.longitude,
       );
+      if (!mounted) return;
+      if (!mounted) return;
 
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
@@ -162,13 +165,15 @@ class _NewLogScreenState extends State<NewLogScreen> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
+      if (!mounted) return;
       setState(() {
         _currentPosition = position;
       });
       // Llamadas en secuencia
       await _getAddressFromLatLng(position);
+      if (!mounted) return;
       await _fetchWeather(position);
-
+      if (!mounted) return;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ubicación y clima obtenidos con éxito.')),
