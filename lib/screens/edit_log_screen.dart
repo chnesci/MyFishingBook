@@ -300,6 +300,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
       );
 
       await fishingLogBox.put(widget.logToEdit.key, updatedLog);
+      setState(() => _hasChanged = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registro actualizado con éxito.')),

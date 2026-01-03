@@ -41,8 +41,48 @@ class _NewLogScreenState extends State<NewLogScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isLoadingSave = false;
+  bool _hasChanged = false;
 
-  Future<bool> _handleLocationPermission() async {
+  @override
+  void initState() {
+    super.initState();
+    _locationController.addListener(_onChanged);
+    _geocodedAddressController.addListener(_onChanged);
+    _notesController.addListener(_onChanged);
+    _fishSpeciesController.addListener(_onChanged);
+    _fishWeightController.addListener(_onChanged);
+    _fishLengthController.addListener(_onChanged);
+    _lureTypeController.addListener(_onChanged);
+    _lureColorController.addListener(_onChanged);
+    _temperatureController.addListener(_onChanged);
+    _conditionsController.addListener(_onChanged);
+  }
+
+  void _onChanged() {
+    if (!_hasChanged) {
+      setState(() => _hasChanged = true);
+    }
+  }
+
+  Future<bool> _showUnsavedChangesDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambios sin guardar'),
+        content: const Text('¿Quieres guardar los cambios antes de salir?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Sí'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -304,6 +344,7 @@ class _NewLogScreenState extends State<NewLogScreen> {
         );
 
         await fishingLogBox.add(newLog);
+        setState(() => _hasChanged = false);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registro guardado exitosamente.')),
@@ -344,7 +385,16 @@ class _NewLogScreenState extends State<NewLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        if (!_hasChanged) return true;
+        final shouldSave = await _showUnsavedChangesDialog();
+        if (shouldSave) {
+          await _saveLog();
+        }
+        return true;
+      },
+      child: Scaffold(
       appBar: AppBar(title: const Text('Nuevo Registro de Pesca')),
       body: _isLoadingSave
           ? const Center(child: CircularProgressIndicator())
@@ -619,6 +669,7 @@ class _NewLogScreenState extends State<NewLogScreen> {
                 ),
               ),
             ),
+          ),
     );
   }
 }
