@@ -95,3 +95,19 @@ Ejecuta el comando para compilar y lanzar la aplicación.
 Bash
 
 flutter run
+
+## Actualizaciones Recientes
+
+### v1.0.0+1 (2026-01-03)
+
+- **Actualización de Dependencias:** Se actualizaron varias dependencias a sus versiones más recientes compatibles, incluyendo google_maps_flutter, http, image_picker, shared_preferences, y otras para mejorar rendimiento y seguridad.
+
+- **Mejoras de Seguridad:** Implementación de hashing bcrypt para contraseñas, migración automática de usuarios existentes, y extracción de claves API a variables de entorno (--dart-define).
+
+- **Correcciones de Código:** Arreglo de warnings del analizador, manejo adecuado de BuildContext en async operations, y actualización de APIs obsoletas.
+
+- **CI/CD:** Añadido workflow de GitHub Actions para análisis automático de código en PRs y pushes.
+
+- **Tests:** Actualización de tests unitarios para ser independientes de inicializaciones globales.
+
+Para más detalles, ver [README_SECRETS.md](README_SECRETS.md) y [README_MIGRATE.md](README_MIGRATE.md).
