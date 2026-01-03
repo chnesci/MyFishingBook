@@ -139,7 +139,14 @@ class _EditLogScreenState extends State<EditLogScreen> {
         return;
       }
 
-      const apiKey = '52eddc52fcfac12362bfb6ef55608ab7';
+      const apiKey = String.fromEnvironment('OPENWEATHER_API_KEY');
+      if (apiKey.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('OpenWeather API key no configurada. Define OPENWEATHER_API_KEY usando --dart-define.')),
+        );
+        return;
+      }
       final url = Uri.parse(
         'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric&lang=es',
       );
@@ -293,11 +300,11 @@ class _EditLogScreenState extends State<EditLogScreen> {
       );
 
       await fishingLogBox.put(widget.logToEdit.key, updatedLog);
-
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registro actualizado con éxito.')),
+      );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registro actualizado con éxito.')),
-        );
         Navigator.of(context).pop();
       }
     }
@@ -375,7 +382,8 @@ class _EditLogScreenState extends State<EditLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
+  // ignore: deprecated_member_use
+  return WillPopScope(
       onWillPop: () async {
         if (!_hasChanged) return true;
         final shouldSave = await _showUnsavedChangesDialog();

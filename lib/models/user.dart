@@ -25,6 +25,9 @@ class User extends HiveObject {
   @HiveField(6)
   late String email; // Agregado
 
+  @HiveField(7)
+  String? passwordHash;
+
   User({
     required this.username,
     required this.password,
@@ -33,5 +36,6 @@ class User extends HiveObject {
     required this.secretAnswer3,
     required this.name, // Agregado
     required this.email, // Agregado
+    this.passwordHash,
   });
 }

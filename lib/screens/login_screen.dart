@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:fishlog/models/user.dart';
 import 'package:fishlog/screens/main_screen.dart';
+import 'package:fishlog/utils/auth.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -22,20 +23,36 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       final userBox = await Hive.openBox<User>('users');
       final user = userBox.get(_usernameController.text);
-
-      if (user != null && user.password == _passwordController.text) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => MainScreen(username: user.username),
-            ),
-          );
+      if (user != null) {
+        final supplied = _passwordController.text;
+        bool ok = false;
+        if (user.passwordHash != null && user.passwordHash!.isNotEmpty) {
+          ok = AuthUtil.verifyPassword(supplied, user.passwordHash!);
+        } else {
+          // Legacy: plaintext password stored. Verify and migrate to hash.
+          if (user.password == supplied) {
+            ok = true;
+            final newHash = AuthUtil.hashPassword(supplied);
+            user.passwordHash = newHash;
+            user.password = '';
+            await user.save();
+          }
         }
-      } else {
-        setState(() {
-          _errorMessage = 'Usuario o contraseña incorrectos.';
-        });
+
+        if (ok) {
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => MainScreen(username: user.username),
+              ),
+            );
+          }
+          return;
+        }
       }
+      setState(() {
+        _errorMessage = 'Usuario o contraseña incorrectos.';
+      });
     }
   }
 

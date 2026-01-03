@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:fishlog/models/user.dart';
+import 'package:fishlog/utils/auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -41,25 +42,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
+      // Store hashed password, avoid keeping plaintext in storage
+      final passwordHash = AuthUtil.hashPassword(password);
       final newUser = User(
         username: username,
-        password: password,
+        password: '', // clear plaintext password
         name: name, // Agregado
         email: email, // Agregado
         secretAnswer1: secretAnswer1,
         secretAnswer2: secretAnswer2,
         secretAnswer3: secretAnswer3,
+        passwordHash: passwordHash,
       );
       await userBox.put(username, newUser);
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Registro exitoso. ¡Inicia sesión!'),
-            ),
-          );
-          Navigator.of(context).pushReplacementNamed('/login');
-        }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registro exitoso. ¡Inicia sesión!'),
+        ),
+      );
+      if (context.mounted) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
     }
   }
 

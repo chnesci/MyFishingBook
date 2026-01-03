@@ -19,8 +19,10 @@ class NewLogScreen extends StatefulWidget {
 
 class _NewLogScreenState extends State<NewLogScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _locationController = TextEditingController(); // Para el nombre personalizado
-  final _geocodedAddressController = TextEditingController(); // Para la dirección oficial
+  final _locationController =
+      TextEditingController(); // Para el nombre personalizado
+  final _geocodedAddressController =
+      TextEditingController(); // Para la dirección oficial
   final _notesController = TextEditingController();
   final _fishSpeciesController = TextEditingController();
   final _fishWeightController = TextEditingController();
@@ -44,9 +46,9 @@ class _NewLogScreenState extends State<NewLogScreen> {
     bool serviceEnabled;
     LocationPermission permission;
 
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!mounted) return false;
-  if (!serviceEnabled) {
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!mounted) return false;
+    if (!serviceEnabled) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -96,15 +98,26 @@ class _NewLogScreenState extends State<NewLogScreen> {
     });
 
     try {
-  const apiKey = '52eddc52fcfac12362bfb6ef55608ab7'; // Tu API Key
+      const apiKey = String.fromEnvironment('OPENWEATHER_API_KEY');
+      if (apiKey.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'OpenWeather API key no configurada. Define OPENWEATHER_API_KEY usando --dart-define.',
+            ),
+          ),
+        );
+        return;
+      }
       final url = Uri.parse(
         'https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric&lang=es',
       );
 
-  final response = await http.get(url);
-  if (!mounted) return;
+      final response = await http.get(url);
+      if (!mounted) return;
 
-  if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final temp = data['main']['temp'].toStringAsFixed(1);
         final description = data['weather'][0]['description'];
@@ -120,11 +133,10 @@ class _NewLogScreenState extends State<NewLogScreen> {
         }
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al obtener datos del clima: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al obtener datos del clima: $e')),
+      );
     } finally {
       setState(() {
         _isLoadingWeather = false;
@@ -149,11 +161,10 @@ class _NewLogScreenState extends State<NewLogScreen> {
         });
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al obtener la dirección: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al obtener la dirección: $e')),
+      );
     }
   }
 
@@ -166,7 +177,9 @@ class _NewLogScreenState extends State<NewLogScreen> {
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (!mounted) return;
       setState(() {
@@ -177,17 +190,14 @@ class _NewLogScreenState extends State<NewLogScreen> {
       if (!mounted) return;
       await _fetchWeather(position);
       if (!mounted) return;
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ubicación y clima obtenidos con éxito.')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ubicación y clima obtenidos con éxito.')),
+      );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al obtener la ubicación o el clima: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al obtener la ubicación o el clima: $e')),
+      );
     } finally {
       setState(() {
         _isLoadingLocation = false;
@@ -276,24 +286,30 @@ class _NewLogScreenState extends State<NewLogScreen> {
           photoPath: _fishPhoto?.path ?? '',
           lurePhotoPath: _lurePhoto?.path ?? '',
           isCatch: _isCatch,
-          fishSpecies: _fishSpeciesController.text.isNotEmpty ? _fishSpeciesController.text : null,
+          fishSpecies: _fishSpeciesController.text.isNotEmpty
+              ? _fishSpeciesController.text
+              : null,
           fishWeight: double.tryParse(_fishWeightController.text),
           fishLength: double.tryParse(_fishLengthController.text),
-          lureType: _lureTypeController.text.isNotEmpty ? _lureTypeController.text : null,
-          lureColor: _lureColorController.text.isNotEmpty ? _lureColorController.text : null,
+          lureType: _lureTypeController.text.isNotEmpty
+              ? _lureTypeController.text
+              : null,
+          lureColor: _lureColorController.text.isNotEmpty
+              ? _lureColorController.text
+              : null,
           temperature: double.tryParse(_temperatureController.text),
-          conditions: _conditionsController.text.isNotEmpty ? _conditionsController.text : null,
+          conditions: _conditionsController.text.isNotEmpty
+              ? _conditionsController.text
+              : null,
         );
 
         await fishingLogBox.add(newLog);
-
-        if (mounted) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Registro guardado exitosamente.')),
-            );
-            Navigator.of(context).pop();
-          }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registro guardado exitosamente.')),
+        );
+        if (context.mounted) {
+          Navigator.of(context).pop();
         }
       } catch (e) {
         if (mounted) {
@@ -352,7 +368,7 @@ class _NewLogScreenState extends State<NewLogScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                     TextFormField(
+                    TextFormField(
                       controller: _geocodedAddressController,
                       readOnly: true,
                       decoration: const InputDecoration(
@@ -447,7 +463,9 @@ class _NewLogScreenState extends State<NewLogScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _fishSpeciesController,
-                      decoration: const InputDecoration(labelText: 'Especie del Pez'),
+                      decoration: const InputDecoration(
+                        labelText: 'Especie del Pez',
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -455,7 +473,9 @@ class _NewLogScreenState extends State<NewLogScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _fishWeightController,
-                            decoration: const InputDecoration(labelText: 'Peso (kg)'),
+                            decoration: const InputDecoration(
+                              labelText: 'Peso (kg)',
+                            ),
                             keyboardType: TextInputType.number,
                           ),
                         ),
@@ -463,7 +483,9 @@ class _NewLogScreenState extends State<NewLogScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _fishLengthController,
-                            decoration: const InputDecoration(labelText: 'Longitud (cm)'),
+                            decoration: const InputDecoration(
+                              labelText: 'Longitud (cm)',
+                            ),
                             keyboardType: TextInputType.number,
                           ),
                         ),
@@ -472,20 +494,26 @@ class _NewLogScreenState extends State<NewLogScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _lureTypeController,
-                      decoration: const InputDecoration(labelText: 'Tipo de Señuelo'),
+                      decoration: const InputDecoration(
+                        labelText: 'Tipo de Señuelo',
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _lureColorController,
-                      decoration: const InputDecoration(labelText: 'Color del Señuelo'),
+                      decoration: const InputDecoration(
+                        labelText: 'Color del Señuelo',
+                      ),
                     ),
                     const SizedBox(height: 16),
-                     Row(
+                    Row(
                       children: [
                         Expanded(
                           child: TextFormField(
                             controller: _temperatureController,
-                            decoration: const InputDecoration(labelText: 'Temperatura (°C)'),
+                            decoration: const InputDecoration(
+                              labelText: 'Temperatura (°C)',
+                            ),
                             keyboardType: TextInputType.number,
                           ),
                         ),
@@ -496,7 +524,7 @@ class _NewLogScreenState extends State<NewLogScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                        ]
+                        ],
                       ],
                     ),
                     const SizedBox(height: 16),
