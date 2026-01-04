@@ -39,15 +39,25 @@ class _EditLogScreenState extends State<EditLogScreen> {
   @override
   void initState() {
     super.initState();
-    _locationController = TextEditingController(text: widget.logToEdit.location);
-    _geocodedAddressController = TextEditingController(text: widget.logToEdit.geocodedAddress ?? '');
+    _locationController = TextEditingController(
+      text: widget.logToEdit.location,
+    );
+    _geocodedAddressController = TextEditingController(
+      text: widget.logToEdit.geocodedAddress ?? '',
+    );
     _notesController = TextEditingController(text: widget.logToEdit.notes);
-    _temperatureController = TextEditingController(text: widget.logToEdit.temperature?.toString() ?? '');
-    _conditionsController = TextEditingController(text: widget.logToEdit.conditions ?? '');
+    _temperatureController = TextEditingController(
+      text: widget.logToEdit.temperature?.toString() ?? '',
+    );
+    _conditionsController = TextEditingController(
+      text: widget.logToEdit.conditions ?? '',
+    );
 
     _isCatch = widget.logToEdit.isCatch;
     _selectedDate = widget.logToEdit.date ?? DateTime.now();
-    _selectedTime = TimeOfDay.fromDateTime(widget.logToEdit.date ?? DateTime.now());
+    _selectedTime = TimeOfDay.fromDateTime(
+      widget.logToEdit.date ?? DateTime.now(),
+    );
 
     _locationController.addListener(_onChanged);
     _notesController.addListener(_onChanged);
@@ -134,7 +144,9 @@ class _EditLogScreenState extends State<EditLogScreen> {
 
       if (lat == 0.0 && lon == 0.0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ubicación no disponible para obtener clima.')),
+          const SnackBar(
+            content: Text('Ubicación no disponible para obtener clima.'),
+          ),
         );
         return;
       }
@@ -143,7 +155,11 @@ class _EditLogScreenState extends State<EditLogScreen> {
       if (apiKey.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('OpenWeather API key no configurada. Define OPENWEATHER_API_KEY usando --dart-define.')),
+          const SnackBar(
+            content: Text(
+              'OpenWeather API key no configurada. Define OPENWEATHER_API_KEY usando --dart-define.',
+            ),
+          ),
         );
         return;
       }
@@ -151,8 +167,8 @@ class _EditLogScreenState extends State<EditLogScreen> {
         'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric&lang=es',
       );
 
-  final response = await http.get(url);
-  if (!mounted) return;
+      final response = await http.get(url);
+      if (!mounted) return;
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -210,21 +226,23 @@ class _EditLogScreenState extends State<EditLogScreen> {
   void _getCurrentLocation() async {
     if (!await _handleLocationPermission()) return;
 
-          if (!mounted) return;
+    if (!mounted) return;
     setState(() {
       _isLoadingLocation = true;
     });
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (!mounted) return;
       setState(() {
         _currentPosition = position;
         _hasChanged = true;
       });
-      
+
       await _getAddressFromLatLng(position);
       if (!mounted) return;
       await _fetchWeather(position);
@@ -272,7 +290,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
     }
   }
 
-  void _saveLog() async {
+  Future<void> _saveLog() async {
     if (_formKey.currentState!.validate()) {
       final fishingLogBox = await Hive.openBox<FishingLog>('fishingLogs');
       final newDate = DateTime(
@@ -291,7 +309,9 @@ class _EditLogScreenState extends State<EditLogScreen> {
         date: newDate,
         photoPath: _fishPhoto?.path ?? '',
         lurePhotoPath: _lurePhoto?.path ?? '',
-        weather: widget.logToEdit.weather, // Este campo parece no usarse, se usa conditions
+        weather: widget
+            .logToEdit
+            .weather, // Este campo parece no usarse, se usa conditions
         lure: widget.logToEdit.lure, // Ajustar si es necesario
         notes: _notesController.text,
         isCatch: _isCatch,
@@ -383,8 +403,8 @@ class _EditLogScreenState extends State<EditLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-  // ignore: deprecated_member_use
-  return WillPopScope(
+    // ignore: deprecated_member_use
+    return WillPopScope(
       onWillPop: () async {
         if (!_hasChanged) return true;
         final shouldSave = await _showUnsavedChangesDialog();
@@ -449,7 +469,9 @@ class _EditLogScreenState extends State<EditLogScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _temperatureController,
-                        decoration: const InputDecoration(labelText: 'Temperatura (°C)'),
+                        decoration: const InputDecoration(
+                          labelText: 'Temperatura (°C)',
+                        ),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -460,7 +482,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                    ]
+                    ],
                   ],
                 ),
                 const SizedBox(height: 16),

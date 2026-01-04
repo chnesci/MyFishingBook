@@ -66,23 +66,26 @@ class _NewLogScreenState extends State<NewLogScreen> {
 
   Future<bool> _showUnsavedChangesDialog() async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cambios sin guardar'),
-        content: const Text('¿Quieres guardar los cambios antes de salir?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Cambios sin guardar'),
+            content: const Text('¿Quieres guardar los cambios antes de salir?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Sí'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Sí'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
+
+  Future<bool> _handleLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -296,7 +299,7 @@ class _NewLogScreenState extends State<NewLogScreen> {
     }
   }
 
-  void _saveLog() async {
+  Future<void> _saveLog() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoadingSave = true;
@@ -395,281 +398,281 @@ class _NewLogScreenState extends State<NewLogScreen> {
         return true;
       },
       child: Scaffold(
-      appBar: AppBar(title: const Text('Nuevo Registro de Pesca')),
-      body: _isLoadingSave
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre del Lugar (Personalizado)',
-                        hintText: 'Ej: La curva del sauce',
+        appBar: AppBar(title: const Text('Nuevo Registro de Pesca')),
+        body: _isLoadingSave
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    children: [
+                      TextFormField(
+                        controller: _locationController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre del Lugar (Personalizado)',
+                          hintText: 'Ej: La curva del sauce',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, ingresa un nombre para el lugar';
+                          }
+                          return null;
+                        },
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, ingresa un nombre para el lugar';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _geocodedAddressController,
-                      readOnly: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Dirección Oficial (Automática)',
-                        border: InputBorder.none,
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _geocodedAddressController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Dirección Oficial (Automática)',
+                          border: InputBorder.none,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _isLoadingLocation
-                          ? null
-                          : _getCurrentLocation,
-                      icon: _isLoadingLocation
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Icon(Icons.location_on),
-                      label: Text(
-                        _currentPosition == null
-                            ? 'Obtener Ubicación y Clima'
-                            : 'Ubicación y Clima Obtenidos',
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _isLoadingLocation
+                            ? null
+                            : _getCurrentLocation,
+                        icon: _isLoadingLocation
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.location_on),
+                        label: Text(
+                          _currentPosition == null
+                              ? 'Obtener Ubicación y Clima'
+                              : 'Ubicación y Clima Obtenidos',
+                        ),
                       ),
-                    ),
-                    if (_currentPosition != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Latitud: ${_currentPosition!.latitude.toStringAsFixed(4)}, Longitud: ${_currentPosition!.longitude.toStringAsFixed(4)}',
-                                style: const TextStyle(
-                                  fontStyle: FontStyle.italic,
+                      if (_currentPosition != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Latitud: ${_currentPosition!.latitude.toStringAsFixed(4)}, Longitud: ${_currentPosition!.longitude.toStringAsFixed(4)}',
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                  ),
                                 ),
                               ),
-                            ),
-                            IconButton(
-                              onPressed: _launchMapsUrl,
-                              icon: const Icon(Icons.map),
-                              tooltip: 'Ver en Google Maps',
-                            ),
-                          ],
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _selectDate(context),
-                            icon: const Icon(Icons.calendar_today),
-                            label: Text(
-                              _selectedDate == null
-                                  ? 'Seleccionar fecha'
-                                  : 'Fecha: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                            ),
+                              IconButton(
+                                onPressed: _launchMapsUrl,
+                                icon: const Icon(Icons.map),
+                                tooltip: 'Ver en Google Maps',
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _selectTime(context),
-                            icon: const Icon(Icons.access_time),
-                            label: Text(
-                              _selectedTime == null
-                                  ? 'Seleccionar hora'
-                                  : 'Hora: ${_selectedTime!.format(context)}',
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _selectDate(context),
+                              icon: const Icon(Icons.calendar_today),
+                              label: Text(
+                                _selectedDate == null
+                                    ? 'Seleccionar fecha'
+                                    : 'Fecha: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const Text('¿Hubo Captura?'),
-                        Switch(
-                          value: _isCatch,
-                          onChanged: (value) {
-                            setState(() {
-                              _isCatch = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _fishSpeciesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Especie del Pez',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _fishWeightController,
-                            decoration: const InputDecoration(
-                              labelText: 'Peso (kg)',
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _fishLengthController,
-                            decoration: const InputDecoration(
-                              labelText: 'Longitud (cm)',
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _lureTypeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Tipo de Señuelo',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _lureColorController,
-                      decoration: const InputDecoration(
-                        labelText: 'Color del Señuelo',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _temperatureController,
-                            decoration: const InputDecoration(
-                              labelText: 'Temperatura (°C)',
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        if (_isLoadingWeather) ...[
                           const SizedBox(width: 8),
-                          const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _selectTime(context),
+                              icon: const Icon(Icons.access_time),
+                              label: Text(
+                                _selectedTime == null
+                                    ? 'Seleccionar hora'
+                                    : 'Hora: ${_selectedTime!.format(context)}',
+                              ),
+                            ),
                           ),
                         ],
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _conditionsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Condición del Clima',
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _notesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Notas (caña, línea, etc.)',
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Text('¿Hubo Captura?'),
+                          Switch(
+                            value: _isCatch,
+                            onChanged: (value) {
+                              setState(() {
+                                _isCatch = value;
+                              });
+                            },
+                          ),
+                        ],
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Foto del Pez',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    if (_fishPhoto != null)
-                      Image.file(_fishPhoto!, height: 200, fit: BoxFit.cover)
-                    else
-                      Container(
-                        height: 200,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: Text('No hay imagen seleccionada'),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _fishSpeciesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Especie del Pez',
                         ),
                       ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () =>
-                              _pickImage(ImageSource.camera, 'fish'),
-                          icon: const Icon(Icons.camera_alt),
-                          label: const Text('Tomar Foto'),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () =>
-                              _pickImage(ImageSource.gallery, 'fish'),
-                          icon: const Icon(Icons.photo_library),
-                          label: const Text('Galería'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Foto del Señuelo',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    if (_lurePhoto != null)
-                      Image.file(_lurePhoto!, height: 200, fit: BoxFit.cover)
-                    else
-                      Container(
-                        height: 200,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: Text('No hay imagen seleccionada'),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _fishWeightController,
+                              decoration: const InputDecoration(
+                                labelText: 'Peso (kg)',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _fishLengthController,
+                              decoration: const InputDecoration(
+                                labelText: 'Longitud (cm)',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _lureTypeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de Señuelo',
                         ),
                       ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () =>
-                              _pickImage(ImageSource.camera, 'lure'),
-                          icon: const Icon(Icons.camera_alt),
-                          label: const Text('Tomar Foto'),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _lureColorController,
+                        decoration: const InputDecoration(
+                          labelText: 'Color del Señuelo',
                         ),
-                        ElevatedButton.icon(
-                          onPressed: () =>
-                              _pickImage(ImageSource.gallery, 'lure'),
-                          icon: const Icon(Icons.photo_library),
-                          label: const Text('Galería'),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _temperatureController,
+                              decoration: const InputDecoration(
+                                labelText: 'Temperatura (°C)',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          if (_isLoadingWeather) ...[
+                            const SizedBox(width: 8),
+                            const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _conditionsController,
+                        decoration: const InputDecoration(
+                          labelText: 'Condición del Clima',
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _saveLog,
-                      child: const Text('Guardar'),
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _notesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Notas (caña, línea, etc.)',
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Foto del Pez',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      if (_fishPhoto != null)
+                        Image.file(_fishPhoto!, height: 200, fit: BoxFit.cover)
+                      else
+                        Container(
+                          height: 200,
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: Text('No hay imagen seleccionada'),
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () =>
+                                _pickImage(ImageSource.camera, 'fish'),
+                            icon: const Icon(Icons.camera_alt),
+                            label: const Text('Tomar Foto'),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () =>
+                                _pickImage(ImageSource.gallery, 'fish'),
+                            icon: const Icon(Icons.photo_library),
+                            label: const Text('Galería'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Foto del Señuelo',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      if (_lurePhoto != null)
+                        Image.file(_lurePhoto!, height: 200, fit: BoxFit.cover)
+                      else
+                        Container(
+                          height: 200,
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: Text('No hay imagen seleccionada'),
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () =>
+                                _pickImage(ImageSource.camera, 'lure'),
+                            icon: const Icon(Icons.camera_alt),
+                            label: const Text('Tomar Foto'),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () =>
+                                _pickImage(ImageSource.gallery, 'lure'),
+                            icon: const Icon(Icons.photo_library),
+                            label: const Text('Galería'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _saveLog,
+                        child: const Text('Guardar'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ),
+      ),
     );
   }
 }
